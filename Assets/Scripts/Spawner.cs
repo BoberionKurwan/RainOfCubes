@@ -13,8 +13,6 @@ public class Spawner : MonoBehaviour
     private ObjectPool<Cube> _pool;
     private Coroutine _spawningCoroutine;
     private int _activeCount = 0;
-    private float _minDelay = 2f;
-    private float _maxDelay = 5f;
 
     private void Awake()
     {
@@ -40,9 +38,11 @@ public class Spawner : MonoBehaviour
 
     private IEnumerator SpawnCubesRoutine()
     {
+        WaitForSeconds waitForSpawnInterval = new WaitForSeconds(_spawnInterval);
+
         while (enabled)
         {
-            yield return new WaitForSeconds(_spawnInterval);
+            yield return waitForSpawnInterval;
 
             if (_activeCount < _poolMaxSize)
                 _pool.Get();
@@ -52,7 +52,7 @@ public class Spawner : MonoBehaviour
     private Cube CreateCube()
     {
         Cube cube = Instantiate(_cubePrefab);
-        cube.Initialize(HandleCubeCollision);
+        cube.Initialize(ReleaseCube);
         return cube;
     }
 
@@ -75,23 +75,14 @@ public class Spawner : MonoBehaviour
         Destroy(cube.gameObject);
     }
 
+    private void ReleaseCube(Cube cube)
+    {
+        _pool.Release(cube);
+    }
+
     private Vector3 GetRandomSpawnPosition()
     {
         Vector2 randomCircle = Random.insideUnitCircle * _spawnRadius;
         return transform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
-    }
-
-    private void HandleCubeCollision(Cube cube)
-    {
-        StartCoroutine(ReturnCubeToPoolAfterDelay(cube));
-    }
-
-    private IEnumerator ReturnCubeToPoolAfterDelay(Cube cube)
-    {
-        float delay = Random.Range(_minDelay, _maxDelay);
-        yield return new WaitForSeconds(delay);
-
-        if (cube.gameObject.activeInHierarchy)
-            _pool.Release(cube);
     }
 }
