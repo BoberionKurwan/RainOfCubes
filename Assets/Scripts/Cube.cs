@@ -14,7 +14,7 @@ public class Cube : MonoBehaviour
     private float _minDelay = 1f;
     private float _maxDelay = 3f;
 
-    private event Action<Cube> _returnToPool;
+    public event Action<Cube> ReturnToPool;
 
     private void Awake()
     {
@@ -23,9 +23,19 @@ public class Cube : MonoBehaviour
         _initialRotation = transform.rotation;
     }
 
-    public void Initialize(Action<Cube> collisionHandler)
+    private void OnCollisionEnter(Collision collision)
     {
-        _returnToPool += collisionHandler;
+        if (_hasCollided || !collision.gameObject.TryGetComponent<Platform>(out _))
+            return;
+
+        _hasCollided = true;
+        ColorChanger.SetRandomColor(_renderer);
+        _returnCoroutine = StartCoroutine(ReturnToPoolAfterDelay());
+    }
+
+    private void OnDestroy()
+    {
+        ReturnToPool = null;
     }
 
     public void ResetCube()
@@ -43,21 +53,6 @@ public class Cube : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (_hasCollided || collision.gameObject.GetComponent<Platform>() == null) 
-            return;
-
-        _hasCollided = true;
-        ColorChanger.SetRandomColor(_renderer);
-        _returnCoroutine = StartCoroutine(ReturnToPoolAfterDelay());
-    }
-
-    private void OnDestroy()
-    {
-        _returnToPool = null;
-    }
-
     private IEnumerator ReturnToPoolAfterDelay()
     {
         float delay = UnityEngine.Random.Range(_minDelay, _maxDelay);
@@ -66,6 +61,6 @@ public class Cube : MonoBehaviour
         yield return waitForDelay;
 
         if (gameObject.activeInHierarchy)
-            _returnToPool?.Invoke(this);
+            ReturnToPool?.Invoke(this);
     }
 }

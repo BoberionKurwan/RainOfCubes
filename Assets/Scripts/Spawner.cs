@@ -17,10 +17,10 @@ public class Spawner : MonoBehaviour
     private void Awake()
     {
         _pool = new ObjectPool<Cube>(
-            createFunc: CreateCube,
-            actionOnGet: EnableCube,
-            actionOnRelease: DisableCube,
-            actionOnDestroy: DestroyCube,
+            createFunc: Create,
+            actionOnGet: Enable,
+            actionOnRelease: Disable,
+            actionOnDestroy: Destroy,
             collectionCheck: true,
             defaultCapacity: _poolCapacity,
             maxSize: _poolMaxSize);
@@ -28,7 +28,7 @@ public class Spawner : MonoBehaviour
 
     private void Start()
     {
-        _spawningCoroutine = StartCoroutine(SpawnCubesRoutine());
+        _spawningCoroutine = StartCoroutine(SpawnRoutine());
     }
 
     private void OnDestroy()
@@ -36,7 +36,7 @@ public class Spawner : MonoBehaviour
         StopCoroutine(_spawningCoroutine);
     }
 
-    private IEnumerator SpawnCubesRoutine()
+    private IEnumerator SpawnRoutine()
     {
         WaitForSeconds waitForSpawnInterval = new WaitForSeconds(_spawnInterval);
 
@@ -49,14 +49,14 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    private Cube CreateCube()
+    private Cube Create()
     {
         Cube cube = Instantiate(_cubePrefab);
-        cube.Initialize(ReleaseCube);
+        cube.ReturnToPool += Release;
         return cube;
     }
 
-    private void EnableCube(Cube cube)
+    private void Enable(Cube cube)
     {
         cube.transform.position = GetRandomSpawnPosition();
         cube.ResetCube();
@@ -64,18 +64,18 @@ public class Spawner : MonoBehaviour
         _activeCount++;
     }
 
-    private void DisableCube(Cube cube)
+    private void Disable(Cube cube)
     {
         cube.gameObject.SetActive(false);
         _activeCount--;
     }
 
-    private void DestroyCube(Cube cube)
+    private void Destroy(Cube cube)
     {
         Destroy(cube.gameObject);
     }
 
-    private void ReleaseCube(Cube cube)
+    private void Release(Cube cube)
     {
         _pool.Release(cube);
     }
