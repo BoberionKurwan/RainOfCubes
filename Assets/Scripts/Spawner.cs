@@ -1,65 +1,78 @@
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Pool;
+using System.Collections;
 
 public class Spawner : MonoBehaviour
 {
-    [SerializeField] private GameObject _prefab;
+    [SerializeField] private Cube _cubePrefab;
     [SerializeField] private float _spawnRadius = 5f;
-    [SerializeField] private float _repeatRate = 1f;
+    [SerializeField] private float _spawnInterval = 1f;
     [SerializeField] private int _poolCapacity = 3;
     [SerializeField] private int _poolMaxSize = 3;
 
-    private ObjectPool<GameObject> _pool;
-
-    private int _spawnedCount = 0;
-    private float minDelay = 5f;
-    private float maxDelay = 10f;
+    private ObjectPool<Cube> _pool;
+    private Coroutine _spawningCoroutine;
+    private int _activeCount = 0;
+    private float _minDelay = 2f;
+    private float _maxDelay = 5f;
 
     private void Awake()
     {
-        _pool = new ObjectPool<GameObject>(
-            createFunc: () => Instantiate(_prefab),
-            actionOnGet: (obj) => ActionOnGet(obj),
-            actionOnRelease: (obj) => ActionOnRelease(obj),
-            actionOnDestroy: (obj) => Destroy(obj),
+        _pool = new ObjectPool<Cube>(
+            createFunc: CreateCube,
+            actionOnGet: EnableCube,
+            actionOnRelease: DisableCube,
+            actionOnDestroy: DestroyCube,
             collectionCheck: true,
             defaultCapacity: _poolCapacity,
             maxSize: _poolMaxSize);
     }
 
-    private void ActionOnGet(GameObject obj)
-    {
-        Renderer renderer = obj.GetComponent<Renderer>();
-        ColorChanger.SetDefaultColor(renderer);
-
-        obj.transform.position = GetRandomSpawnPosition();
-        obj.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-        obj.SetActive(true);
-
-        _spawnedCount++;
-
-        Cube cube = obj.GetComponent<Cube>();
-
-        if (cube != null)
-            cube.CollisionEnter += OnCubeCollision;
-    }
-
-    private void ActionOnRelease(GameObject obj)
-    {
-        obj.SetActive(false);
-        _spawnedCount--;
-    }
-
     private void Start()
     {
-        InvokeRepeating(nameof(GetCube), 0.0f, _repeatRate);
+        _spawningCoroutine = StartCoroutine(SpawnCubesRoutine());
     }
 
-    private void GetCube()
+    private void OnDestroy()
     {
-        if (_spawnedCount < _poolMaxSize)
-            _pool.Get();
+        StopCoroutine(_spawningCoroutine);
+    }
+
+    private IEnumerator SpawnCubesRoutine()
+    {
+        while (enabled)
+        {
+            yield return new WaitForSeconds(_spawnInterval);
+
+            if (_activeCount < _poolMaxSize)
+                _pool.Get();
+        }
+    }
+
+    private Cube CreateCube()
+    {
+        Cube cube = Instantiate(_cubePrefab);
+        cube.Initialize(HandleCubeCollision);
+        return cube;
+    }
+
+    private void EnableCube(Cube cube)
+    {
+        cube.transform.position = GetRandomSpawnPosition();
+        cube.ResetCube();
+        cube.gameObject.SetActive(true);
+        _activeCount++;
+    }
+
+    private void DisableCube(Cube cube)
+    {
+        cube.gameObject.SetActive(false);
+        _activeCount--;
+    }
+
+    private void DestroyCube(Cube cube)
+    {
+        Destroy(cube.gameObject);
     }
 
     private Vector3 GetRandomSpawnPosition()
@@ -68,22 +81,17 @@ public class Spawner : MonoBehaviour
         return transform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
     }
 
-    private void OnCubeCollision(Cube cube, Collision collision)
+    private void HandleCubeCollision(Cube cube)
     {
-        cube.CollisionEnter -= OnCubeCollision;
-
-        StartCoroutine(ReturnToPoolAfterDelay(cube.gameObject));
+        StartCoroutine(ReturnCubeToPoolAfterDelay(cube));
     }
 
-    private IEnumerator ReturnToPoolAfterDelay(GameObject cube)
+    private IEnumerator ReturnCubeToPoolAfterDelay(Cube cube)
     {
-        float delay = Random.Range(minDelay, maxDelay);
-
+        float delay = Random.Range(_minDelay, _maxDelay);
         yield return new WaitForSeconds(delay);
 
-        if (cube.activeInHierarchy)
-        {
+        if (cube.gameObject.activeInHierarchy)
             _pool.Release(cube);
-        }
     }
 }

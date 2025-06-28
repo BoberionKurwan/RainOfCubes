@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class ColorChanger : MonoBehaviour
 {
-    public static void SetColorRed(Renderer renderer)
+    public static void SetRandomColor(Renderer renderer)
     {
-        renderer.material.color = Color.red;
+        renderer.material.color = Random.ColorHSV();
     }
 
     public static void SetDefaultColor(Renderer renderer)
