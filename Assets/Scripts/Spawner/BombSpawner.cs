@@ -28,7 +28,7 @@ public class BombSpawner : Spawner<Bomb>
     private void Release(Bomb bomb)
     {
         bomb.ReturnToPool -= Release;
-        bomb.ResetThis();
+        bomb.Reset();
         Pooler.Release(bomb);
     }
 }

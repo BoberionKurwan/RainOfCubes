@@ -26,7 +26,7 @@ public class CubeSpawner : Spawner<Cube>
     private void Release(Cube cube)
     {
         cube.ReturnToPool -= Release;
-        cube.ResetThis();
+        cube.Reset();
         Pooler.Release(cube);
         CubeReleased?.Invoke(cube.transform.position); 
     }

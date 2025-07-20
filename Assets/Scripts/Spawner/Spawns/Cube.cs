@@ -3,26 +3,14 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer), typeof(Rigidbody))]
-public class Cube : MonoBehaviour
+public class Cube : SpawnableObject<Cube>
 {
-    private Renderer _renderer;
-    private Rigidbody _rigidbody;
     private Coroutine _returnCoroutine;
-    private Quaternion _initialRotation;
 
     private bool _hasCollided;
     private float _minDelay = 1f;
     private float _maxDelay = 3f;
-
-    public event Action<Cube> ReturnToPool;
-
-    private void Awake()
-    {
-        _renderer = GetComponent<Renderer>();
-        _rigidbody = GetComponent<Rigidbody>();
-        _initialRotation = transform.rotation;
-    }
-
+        
     private void OnCollisionEnter(Collision collision)
     {
         if (_hasCollided || !collision.gameObject.TryGetComponent<Platform>(out _))
@@ -33,18 +21,12 @@ public class Cube : MonoBehaviour
         _returnCoroutine = StartCoroutine(ReturnToPoolAfterDelay());
     }
 
-    private void OnDestroy()
+    public override void Reset()
     {
-        ReturnToPool = null;
-    }
+        base.Reset();
 
-    public void ResetThis()
-    {
         _hasCollided = false;
         ColorChanger.SetDefaultColor(_renderer);
-        _rigidbody.linearVelocity = Vector3.zero;
-        _rigidbody.angularVelocity = Vector3.zero;
-        transform.rotation = _initialRotation;
 
         if (_returnCoroutine != null)
         {
@@ -62,7 +44,7 @@ public class Cube : MonoBehaviour
 
         if (gameObject.activeInHierarchy)
         {
-            ReturnToPool?.Invoke(this);
+            InvokeReturnToPool(this);
         }
     }
 }
