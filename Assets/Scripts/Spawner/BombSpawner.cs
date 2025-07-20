@@ -2,49 +2,33 @@ using System;
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(CubeSpawner))]
 public class BombSpawner : Spawner<Bomb>
 {
-    private Vector3 _spawnPosition;
+    private CubeSpawner _cubeSpawner;
 
-    private void OnEnable()
+    private void Awake()
     {
-        GameEvents.OnCubeReturnedToPool += SpawnAtPosition;
+        _cubeSpawner = GetComponent<CubeSpawner>();
     }
 
-    private void OnDisable()
+    private void Start()
     {
-        GameEvents.OnCubeReturnedToPool -= SpawnAtPosition;
-    }
-
-    protected override void Enable(Bomb bomb)
-    {
-        base.Enable(bomb);
-        bomb.Activate();
-    }
-
-    protected override IEnumerator SpawnRoutine()
-    {
-        yield break;
-    }
-
-    protected override Vector3 GetSpawnPosition()
-    {
-        return _spawnPosition;
+        _cubeSpawner.CubeReleased += SpawnAtPosition;
     }
 
     private void SpawnAtPosition(Vector3 position)
     {
-        _spawnPosition = position;
-        _pool.Get();
+        Bomb bomb = Pooler.GetObject();
+        bomb.ReturnToPool += Release;
+        bomb.transform.position = position;
+        bomb.Activate();
     }
 
-}
-public static class GameEvents
-{
-    public static event Action<Vector3> OnCubeReturnedToPool;
-
-    public static void CubeReturnedToPool(Vector3 position)
+    private void Release(Bomb bomb)
     {
-        OnCubeReturnedToPool?.Invoke(position);
+        bomb.ReturnToPool -= Release;
+        bomb.ResetThis();
+        Pooler.Release(bomb);
     }
 }
