@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Renderer), typeof(Rigidbody))]
 public class Cube : SpawnableObject<Cube>
@@ -10,14 +11,14 @@ public class Cube : SpawnableObject<Cube>
     private bool _hasCollided;
     private float _minDelay = 1f;
     private float _maxDelay = 3f;
-        
+
     private void OnCollisionEnter(Collision collision)
     {
-        if (_hasCollided || !collision.gameObject.TryGetComponent<Platform>(out _))
+        if (_hasCollided || collision.gameObject.TryGetComponent<Platform>(out _) == false)
             return;
 
         _hasCollided = true;
-        ColorChanger.SetRandomColor(_renderer);
+        _colorChanger.SetRandomColor(_renderer);
         _returnCoroutine = StartCoroutine(ReturnToPoolAfterDelay());
     }
 
@@ -26,7 +27,7 @@ public class Cube : SpawnableObject<Cube>
         base.Reset();
 
         _hasCollided = false;
-        ColorChanger.SetDefaultColor(_renderer);
+        _colorChanger.SetDefaultColor(_renderer);
 
         if (_returnCoroutine != null)
         {

@@ -17,6 +17,11 @@ public class BombSpawner : Spawner<Bomb>
         _cubeSpawner.CubeReleased += SpawnAtPosition;
     }
 
+    private void OnDestroy()
+    {
+        _cubeSpawner.CubeReleased -= SpawnAtPosition;
+    }
+
     private void SpawnAtPosition(Vector3 position)
     {
         Bomb bomb = Pooler.GetObject();

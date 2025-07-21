@@ -3,14 +3,15 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer), typeof(Rigidbody), typeof(SphereCollider))]
-[RequireComponent(typeof(Exploder))]
+[RequireComponent(typeof(Exploder), typeof(TransparencyFader))]
 public class Bomb : SpawnableObject<Bomb>
 {
     [SerializeField] private float _fadeStartTime = 1f;
 
-    private Coroutine _explodeCoroutine;
+        private Coroutine _explodeCoroutine;
     private Material _material;
     private Exploder _exploder;
+    private TransparencyFader _transparencyFader;
 
     private float _minExplodeTime = 2f;
     private float _maxExplodeTime = 5f;
@@ -20,6 +21,7 @@ public class Bomb : SpawnableObject<Bomb>
     {
         base.Awake();
         _exploder = GetComponent<Exploder>();
+        _transparencyFader = GetComponent<TransparencyFader>();
 
         _material = _renderer.material;
     }
@@ -44,8 +46,17 @@ public class Bomb : SpawnableObject<Bomb>
     {
         float explodeTime = UnityEngine.Random.Range(_minExplodeTime, _maxExplodeTime);
         float fadeDuration = explodeTime - _fadeStartTime;
+        float elapsedTime = 0f;
 
-        yield return ColorChanger.FadeIntoTransparency(_material, _material.color, fadeDuration);
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / fadeDuration;
+
+           _transparencyFader.Fade(progress, _material);
+
+            yield return null;
+        }
 
         _exploder.Explode(transform.position);
         InvokeReturnToPool(this);

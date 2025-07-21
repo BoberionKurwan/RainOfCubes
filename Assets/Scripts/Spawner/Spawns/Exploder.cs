@@ -11,7 +11,7 @@ public class Exploder : MonoBehaviour
 
         foreach (Collider collider in colliders)
         {
-            if (collider.TryGetComponent<Rigidbody>(out var rigidbody))
+            if (collider.TryGetComponent(out Rigidbody rigidbody))
             {
                 rigidbody.AddExplosionForce(_explosionForce, centreOfExplosion, _explosionRadius, 1f, ForceMode.Impulse);
             }

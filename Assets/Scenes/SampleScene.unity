@@ -950,6 +950,7 @@ GameObject:
   - component: {fileID: 1299355539}
   - component: {fileID: 1299355538}
   - component: {fileID: 1299355537}
+  - component: {fileID: 1299355542}
   - component: {fileID: 1299355541}
   m_Layer: 5
   m_Name: Canvas
@@ -1051,13 +1052,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 1299355536}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e1c98f113052ac4dae996dbcdeead65, type: 3}
+  m_Script: {fileID: 11500000, guid: 75c1ad081e687f54197a75fb9e6c4e63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cubeCounterText: {fileID: 1778916450}
-  _bombCounterText: {fileID: 1840807334}
-  _cubePooler: {fileID: 109912084}
-  _bombPooler: {fileID: 109912085}
+  _counterText: {fileID: 1840807334}
+  _pooler: {fileID: 109912084}
+  _name: CubeSpawner
+--- !u!114 &1299355542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1299355536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc9db153346dc474292fce575a9399b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _counterText: {fileID: 1778916450}
+  _pooler: {fileID: 109912085}
+  _name: BombSpawner
 --- !u!1 &1411223219
 GameObject:
   m_ObjectHideFlags: 0

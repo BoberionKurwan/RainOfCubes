@@ -1,39 +1,28 @@
 using UnityEngine;
 using TMPro;
 
-public class UIUpdater : MonoBehaviour
+public class UIUpdater<T> : MonoBehaviour where T : MonoBehaviour
 {
-    [SerializeField] private TMP_Text _cubeCounterText;
-    [SerializeField] private TMP_Text _bombCounterText;
-    [SerializeField] private Pooler<Cube> _cubePooler;
-    [SerializeField] private Pooler<Bomb> _bombPooler;
+    [SerializeField] private TMP_Text _counterText;
+    [SerializeField] private Pooler<T> _pooler;
+    [SerializeField] private string _name;
 
     private void Start()
     {
-        _cubePooler.CountersUpdated += UpdateCubeCounters;
-        _bombPooler.CountersUpdated += UpdateBombCounters;
-        
-        UpdateCubeCounters();
-        UpdateBombCounters();
+        _pooler.CountersUpdated += UpdateCounters;
+
+        UpdateCounters();
     }
 
     private void OnDestroy()
     {
-        _cubePooler.CountersUpdated -= UpdateCubeCounters;
-        _bombPooler.CountersUpdated -= UpdateBombCounters;
+        _pooler.CountersUpdated -= UpdateCounters;
     }
 
-    private void UpdateCubeCounters()
+    private void UpdateCounters()
     {
-        _cubeCounterText.text = $"Cubes:\nActiveCount:{_cubePooler.ActiveCount}" +
-            $"\nTotalCreated:{_cubePooler.TotalCreated}" +
-            $"\nTotalSpawned:{_cubePooler.TotalSpawned}";
-    }
-
-    private void UpdateBombCounters()
-    {
-        _bombCounterText.text = $"Bombs:\nActiveCount:{_bombPooler.ActiveCount}" +
-            $"\nTotalCreated:{_bombPooler.TotalCreated}" +
-            $"\nTotalSpawned:{_bombPooler.TotalSpawned}";
+        _counterText.text = $"{_name}:\nActiveCount:{_pooler.ActiveCount}" +
+            $"\nTotalCreated:{_pooler.TotalCreated}" +
+            $"\nTotalSpawned:{_pooler.TotalSpawned}";
     }
 }
